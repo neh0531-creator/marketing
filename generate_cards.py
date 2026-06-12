@@ -211,8 +211,18 @@ def generate(hospital_name: str, manuscript_text: str, output_dir: Path | None =
 
     saved: list[Path] = []
 
+    # Try system chromium if playwright's bundled browser is missing
+    _chromium_paths = [
+        "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/google-chrome",
+    ]
+    _exec = next((x for x in _chromium_paths if Path(x).exists()), None)
+
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        launch_kwargs = {"executable_path": _exec} if _exec else {}
+        browser = p.chromium.launch(**launch_kwargs)
         page = browser.new_page()
 
         # Card 1: Thumbnail
